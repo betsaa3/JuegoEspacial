@@ -6,7 +6,7 @@ import datetime
 # ==============================
 
 def MostrarReglas():
-    print("\n\t========== REGLAS DEL JUEGO ==========")
+    print("\n\t"+"="*26 + " REGLAS DEL JUEGO " + "="*26)
     print("\t1. El objetivo es llevar tu nave desde la Tierra (1) hasta Marte (50).")
     print("\t2. En cada turno lanzas un dado de 6 caras para avanzar.")
     print("\t3. Tipos de nave:")
@@ -19,30 +19,54 @@ def MostrarReglas():
     print("\t   * Falla de Motor (36–45): retrocede al casillero 20 (una sola vez).")
     print("\t5. Si pasas del casillero 50, ganas automáticamente.")
     print("\t6. Puedes abandonar escribiendo 'S' durante tu turno.")
-    print("\t=======================================\n")
+    print("\t" + "="*70 + "\n")
 
 
 def RegistrarJugador():
     Jugador = {}
-    try:
-        Nombre = input("\tIngrese nombre del jugador: ").capitalize()
-        Edad = int(input("\tIngrese edad del jugador: "))
-        while True:
-            TipoNave = input("\tIngrese tipo de nave (Exploradora / Carga): ").capitalize()
-            if TipoNave in ["Exploradora", "Carga"]:
+    while True:
+        Nombre = input("\tIngrese nombre del jugador: ").strip()
+        EsValido = True
+        
+        for Caracter in Nombre:
+            if not (Caracter.isalpha() or Caracter.isspace()):
+                EsValido = False
+                break
+        
+        if EsValido and Nombre != "":
+            Nombre = Nombre.capitalize()
+            break
+        else:
+            print("\t! El nomber solo debe contener letras y espacios. Intente nuevamente.")
+    
+    while True:
+        try:
+            Edad = int(input("\tIngrese edad del jugador: "))
+            if Edad >= 2 and Edad <= 90:
                 break
             else:
-                print("\tTipo inválido. Intente nuevamente.")
-        Jugador["Nombre"] = Nombre
-        Jugador["Edad"] = Edad
-        Jugador["TipoNave"] = TipoNave
-        Jugador["Victorias"] = 0
-        Jugador["Derrotas"] = 0
-    except ValueError:
-        print("\tEntrada inválida. Registro fallido.")
-        return None
-    return Jugador
+                print("\t! Edad invalida. Intente nuevamente.")
+        except ValueError:
+            print("\t! Entrada inválida. Debe ingresar un número.")
 
+    while True:
+        TipoNave = input("\tSeleccione tipo de nave - [E]xploradora o [C]arga: ").upper()
+        if TipoNave in ['E', 'C']:
+            TipoNave = "Exploradora" if TipoNave == 'E' else "Carga"
+            break
+        else:
+            print("\t! Opción inválida. Intente nuevamente.")
+    
+    Jugador = {
+        "Nombre": Nombre,
+        "Edad": Edad,
+        "TipoNave": TipoNave,
+        "Victorias": 0,
+        "Derrotas": 0
+    }
+    
+    print(f"\n\tJugador {Nombre} registrado exitosamente con nave {TipoNave}.\n")
+    return Jugador
 
 def CrearTablero():
     Tablero = [i for i in range(1, 51)]
@@ -171,7 +195,7 @@ def Menu():
 
     while True:
         print("\n\t" + "=" * 70)
-        print("\t\t\t    MENÚ PRINCIPAL")
+        print("\t\t\t\t    MENÚ PRINCIPAL")
         print("\t" + "=" * 70)
         print("\t[1] Instrucciones de cómo jugar")
         print("\t[2] Ingresar jugador")
