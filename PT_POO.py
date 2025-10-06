@@ -6,19 +6,19 @@ import datetime
 # ==============================
 
 def MostrarReglas():
-    print("\n\t"+"="*26 + " REGLAS DEL JUEGO " + "="*26)
-    print("\t1. El objetivo es llevar tu nave desde la Tierra (1) hasta Marte (50).")
+    print("\n\t" + "="*26 + " REGLAS DEL JUEGO " + "="*26)
+    print("\t1. El objetivo es llevar tu nave desde la Tierra (casillero 1) hasta Marte (casillero 50).")
     print("\t2. En cada turno lanzas un dado de 6 caras para avanzar.")
     print("\t3. Tipos de nave:")
-    print("\t   - Exploradora: avanza +1 extra cada turno.")
-    print("\t   - De Carga: sobrevive una vez a un campo de asteroides.")
-    print("\t4. Obstáculos del tablero:")
-    print("\t   * Agujero Negro (8–15): retrocede 5 casillas (una sola vez).")
-    print("\t   * Campo de Asteroides (16–25): 50% de probabilidad de perder.")
-    print("\t   * Tormenta Solar (26–35): pierdes 2 turnos (una sola vez).")
-    print("\t   * Falla de Motor (36–45): retrocede al casillero 20 (una sola vez).")
-    print("\t5. Si pasas del casillero 50, ganas automáticamente.")
-    print("\t6. Puedes abandonar escribiendo 'S' durante tu turno.")
+    print("\t   - Exploradora: avanza +1 extra en cada turno.")
+    print("\t   - De Carga: sobrevive una vez a un Campo de Asteroides.")
+    print("\t4. Obstáculos del tablero (cada casilla activa el efecto solo una vez):")
+    print("\t   * Agujero Negro (8–15): retrocede 5 casillas.")
+    print("\t   * Campo de Asteroides (16–25): 50% de probabilidad de perder la nave.")
+    print("\t   * Tormenta Solar (26–35): pierdes 2 turnos.")
+    print("\t   * Falla de Motor (36–45): retrocedes al casillero 20.")
+    print("\t5. Si pasas del casillero 50, rebota hacia atrás según lo que hayas avanzado.")
+    print("\t6. Puedes abandonar la misión escribiendo 'S' durante tu turno.")
     print("\t" + "="*70 + "\n")
 
 
@@ -87,6 +87,7 @@ def IniciarJuego(Jugador, Historial):
     Resultado = ""
 
     while Posicion < 50:
+        #Si debe saltar turnos
         if SaltarTurnos > 0:
             print(f"\t{Jugador['Nombre']} pierde este turno por Tormenta Solar.")
             SaltarTurnos -= 1
@@ -109,39 +110,42 @@ def IniciarJuego(Jugador, Historial):
         print(f"\n\t{Jugador['Nombre']} lanzó {Dado} y avanzó {Avance} posiciones. Nueva posición: {Posicion}")
 
         # Llegada directa a Marte
-        if Posicion >= 50:
-            Posicion = 50
+        if Posicion > 50:
+            Rebote = Posicion - 50
+            Posicion = 50 - Rebote
+            print(f"\t¡Has rebotado en Marte y retrocedido a la posición {Posicion}!")
+            
+        if Posicion == 50:
             print(f"\t¡Has llegado a Marte en {Turnos} turnos!")
             Resultado = "Victoria"
             Jugador["Victorias"] += 1
             break
 
-        # Obstáculos (solo una vez por casilla)
-        if 8 <= Posicion <= 15 and Posicion not in ObstaculosActivados:
+        # Obstáculos (solo una vez)
+        if 8 <= Posicion <= 15 and "AgujeroNegro" not in ObstaculosActivados:
             Posicion -= 5
-            ObstaculosActivados.add(Posicion + 5)
+            ObstaculosActivados.add("AgujeroNegro")
             print(f"\tCayó en un Agujero Negro y retrocede a la posición {Posicion}.")
 
-        elif 16 <= Posicion <= 25 and Posicion not in ObstaculosActivados:
-            if random.choice([True, False]):
-                if Jugador["TipoNave"] == "Carga" and SupervivenciaCarga:
-                    SupervivenciaCarga = False
-                    print("\tCampo de Asteroides dañado, pero tu nave de carga sobrevive.")
-                else:
-                    print("\t¡Tu nave explotó en un Campo de Asteroides!")
-                    Resultado = "Derrota"
-                    Jugador["Derrotas"] += 1
-                    break
-            ObstaculosActivados.add(Posicion)
+        elif 16 <= Posicion <= 25:
+                if random.choice([True, False]):
+                    if Jugador["TipoNave"] == "Carga" and SupervivenciaCarga:
+                        SupervivenciaCarga = False
+                        print("\tCampo de Asteroides dañado, pero tu nave de carga sobrevive.")
+                    else:
+                        print("\t¡Tu nave explotó en un Campo de Asteroides!")
+                        Resultado = "Derrota"
+                        Jugador["Derrotas"] += 1
+                        break
 
-        elif 26 <= Posicion <= 35 and Posicion not in ObstaculosActivados:
+        elif 26 <= Posicion <= 35 and "TormentaSolar" not in ObstaculosActivados:
             SaltarTurnos = 2
-            ObstaculosActivados.add(Posicion)
+            ObstaculosActivados.add("TormentaSolar")
             print("\tTormenta Solar, pierdes los próximos 2 turnos.")
 
-        elif 36 <= Posicion <= 45 and Posicion not in ObstaculosActivados:
+        elif 36 <= Posicion <= 45 and "FallaMotor" not in ObstaculosActivados:
             Posicion = 20
-            ObstaculosActivados.add(Posicion)
+            ObstaculosActivados.add("FallaMotor")
             print("\tFalla de Motor, retrocedes a la posición 20.")
 
     # Guardar en historial
@@ -161,14 +165,14 @@ def VerEstadisticas(Historial):
         print("\tNo hay juegos registrados todavía.\n")
         return
 
-    print("\n\t=================== ESTADÍSTICAS ===================")
+    print("\n\t" + "="*31 + " ESTADÍSTICAS " + "="*31)
     print(f"\t{'Fecha':<22}{'Jugador':<15}{'Resultado':<15}{'Turnos':<10}{'Posición Final':<15}")
-    print("\t" + "-" * 75)
+    print("\t" + "-" * 76)
 
     for Fecha, Datos in Historial.items():
         print(f"\t{Fecha:<22}{Datos['Nombre']:<15}{Datos['Resultado']:<15}{Datos['Turnos']:<10}{Datos['PosicionFinal']:<15}")
 
-    print("\t" + "-" * 75)
+    print("\t" + "-" * 76)
     ReporteVictoriasDerrotas(Historial)
     ReportePromedioTurnos(Historial)
 
@@ -176,13 +180,29 @@ def VerEstadisticas(Historial):
 def ReporteVictoriasDerrotas(Historial):
     TotalVictorias = sum(1 for d in Historial.values() if d["Resultado"] == "Victoria")
     TotalDerrotas = sum(1 for d in Historial.values() if d["Resultado"] == "Derrota")
-    print(f"\n\tReporte 1: Total de Victorias: {TotalVictorias} | Total de Derrotas: {TotalDerrotas}")
+    
+    print("\n\t===== REPORTE 1: VICTORIAS Y DERROTAS =====")
+    print(f"\t{'Tipo':<20}{'Cantidad':<10}")
+    print("\t" + "-"*30)
+    print(f"\t{'Victorias':<20}{TotalVictorias:<10}")
+    print(f"\t{'Derrotas':<20}{TotalDerrotas:<10}")
+    print("\t" + "-"*30)
 
 
 def ReportePromedioTurnos(Historial):
+    if not Historial:
+        print("\tNo hay partidas registradas.\n")
+        return
+
     PromedioTurnos = sum(d["Turnos"] for d in Historial.values()) / len(Historial)
-    print(f"\tReporte 2: Promedio de turnos por partida: {PromedioTurnos:.2f}")
-    print("\t=====================================================\n")
+
+    print("\n\t" + "="*50)
+    print("\t        REPORTE 2: PROMEDIO DE TURNOS")
+    print("\t" + "="*50)
+    print(f"\t{'Descripción':<35}{'Valor':<10}")
+    print("\t" + "-"*50)
+    print(f"\t{'Promedio de turnos por partida':<35}{PromedioTurnos:<10.2f}")
+    print("\t" + "-"*50 + "\n")
 
 
 # ==============================
