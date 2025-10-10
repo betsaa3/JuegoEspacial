@@ -22,8 +22,7 @@ def MostrarReglas():
     print("\t" + "="*70 + "\n")
 
 
-def RegistrarJugador():
-    Jugador = {}
+def RegistrarJugador(Jugador):
     while True:
         Nombre = input("\tIngrese nombre del jugador: ").strip()
         EsValido = True
@@ -37,7 +36,7 @@ def RegistrarJugador():
             Nombre = Nombre.capitalize()
             break
         else:
-            print("\t! El nomber solo debe contener letras y espacios. Intente nuevamente.")
+            print("\t! El nombre solo debe contener letras y espacios. Intente nuevamente.")
     
     while True:
         try:
@@ -230,7 +229,7 @@ def Menu():
             if Opcion == 1:
                 MostrarReglas()
             elif Opcion == 2:
-                Jugador = RegistrarJugador()
+                Jugador = RegistrarJugador(Jugador)
             elif Opcion == 3:
                 IniciarJuego(Jugador, Historial)
             elif Opcion == 4:
